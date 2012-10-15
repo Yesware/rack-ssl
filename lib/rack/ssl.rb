@@ -76,9 +76,9 @@ module Rack
           end
 
           headers['Set-Cookie'] = cookies.map { |cookie|
-            if cookie =~ /(; |^)domain/  # don't flag any cookies that specify the domain
+            if cookie =~ /(; |^)domain/  # don't flag cookies that specify the domain
               cookie
-            elsif cookie !~ /; secure(;|$)/  # don't flag any cookies that are already flagged
+            elsif cookie !~ /; secure(;|$)/  # flag cookies if they're not already secure
               "#{cookie}; secure"
             else
               cookie
