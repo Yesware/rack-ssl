@@ -95,6 +95,20 @@ class TestSSL < Test::Unit::TestCase
       last_response.headers['Set-Cookie'].split("\n")
   end
 
+  def test_do_not_flag_domain_cookies_as_secure
+    self.app = Rack::SSL.new(lambda { |env|
+      headers = {
+        'Content-Type' => "text/html",
+        'Set-Cookie' => ["id=1; path=/", "option=ghi; path=/; domain=.example.com; HttpOnly"]
+      }
+      [200, headers, ["OK"]]
+    })
+
+    get "https://example.org/"
+    assert_equal ["id=1; path=/; secure", "option=ghi; path=/; domain=.example.com; HttpOnly" ],
+      last_response.headers['Set-Cookie'].split("\n")
+  end
+
   def test_legacy_array_headers
     self.app = Rack::SSL.new(lambda { |env|
       headers = {
