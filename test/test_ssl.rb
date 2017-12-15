@@ -48,6 +48,11 @@ class TestSSL < Test::Unit::TestCase
       last_response.headers['Strict-Transport-Security']
   end
 
+  def test_no_hsts_with_insecure_connection
+    get "http://example.org/"
+    assert !last_response.headers['Strict-Transport-Security']
+  end
+
   def test_hsts_header
     self.app = Rack::SSL.new(default_app, :hsts => true)
     get "https://example.org/"
@@ -138,6 +143,13 @@ class TestSSL < Test::Unit::TestCase
       last_response.headers['Location']
   end
 
+  def test_redirect_to_host_port
+    self.app = Rack::SSL.new(default_app, :host => "ssl.example.org:443")
+    get "http://example.org/path?key=value"
+    assert_equal "https://ssl.example.org:443/path?key=value",
+      last_response.headers['Location']
+  end
+
   def test_redirect_to_secure_host_when_on_subdomain
     self.app = Rack::SSL.new(default_app, :host => "ssl.example.org")
     get "http://ssl.example.org/path?key=value"
@@ -150,5 +162,40 @@ class TestSSL < Test::Unit::TestCase
     get "http://double.rainbow.what.does.it.mean.example.co.uk/path?key=value"
     assert_equal "https://example.co.uk/path?key=value",
       last_response.headers['Location']
+  end
+
+  def test_status_get
+    get "http://example.org/"
+    assert_equal 301, last_response.status
+  end
+
+  def test_status_head
+    head "http://example.org/"
+    assert_equal 301, last_response.status
+  end
+
+  def test_status_options
+    options "http://example.org/"
+    assert_equal 307, last_response.status
+  end
+
+  def test_status_post
+    post "http://example.org/"
+    assert_equal 307, last_response.status
+  end
+
+  def test_status_put
+    put "http://example.org/"
+    assert_equal 307, last_response.status
+  end
+
+  def test_status_delete
+    delete "http://example.org/"
+    assert_equal 307, last_response.status
+  end
+
+  def test_status_patch
+    patch "http://example.org/"
+    assert_equal 307, last_response.status
   end
 end
